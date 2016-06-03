@@ -1,0 +1,156 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+	<!-- quartz -->
+	<bean name="quartzDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass" value="com.wzcssw.web.quartz.InitialSaveLoginInfoJob"></property>
+	</bean>
+	<bean id="cronTriggerLogin" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="quartzDetail"/>
+		</property>
+		<property name="cronExpression" value="0 0 0 * * ?"></property>
+	</bean>
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<ref local="cronTriggerLogin"/>
+		</property>
+	</bean>
+	<!-- quartz end -->
+	<bean name="user" class="com.wzcssw.domain.User"
+		scope="prototype">
+	</bean>
+	<bean name="userAction" class="com.wzcssw.web.action.UserAction"
+		scope="prototype">
+		<property name="service">
+			<ref bean="userService" />
+		</property>
+		<property name="pService">
+			<ref bean="pictureService" />
+		</property>
+		<property name="aService">
+			<ref bean="albumService" />
+		</property>
+	</bean>
+	<bean name="pictureAction" class="com.wzcssw.web.action.PictureAction"
+		scope="prototype">
+		<property name="pService">
+			<ref bean="pictureService" />
+		</property>
+		<property name="aService">
+			<ref bean="albumService" />
+		</property>
+		<property name="cService">
+			<ref bean="categoryService" />
+		</property>
+		<property name="comService">
+			<ref bean="commentService" />
+		</property>
+	</bean>
+	<bean name="fileAction" class="com.wzcssw.web.action.FileAction"
+		scope="prototype">
+		<property name="pService">
+			<ref bean="pictureService" />
+		</property>
+		<property name="aService">
+			<ref bean="albumService" />
+		</property>
+		<property name="cService">
+			<ref bean="categoryService" />
+		</property>
+	</bean>
+	<bean name="managerAction" class="com.wzcssw.web.action.ManagerAction"
+		scope="prototype">
+		<property name="service">
+			<ref bean="userService" />
+		</property>
+		<property name="pService">
+			<ref bean="pictureService" />
+		</property>
+	</bean>
+	<bean name="userDAO" class="com.wzcssw.dao.impl.UserDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean name="pictureDAO" class="com.wzcssw.dao.impl.PictureDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean name="albumDAO" class="com.wzcssw.dao.impl.AlbumDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean name="categoryDAO" class="com.wzcssw.dao.impl.CategoryDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean name="commentDAO" class="com.wzcssw.dao.impl.CommentDAOImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<bean name="userService" class="com.wzcssw.service.impl.UserServiceImpl">
+		<property name="dao">
+			<ref bean="userDAO" />
+		</property>
+	</bean>
+	<bean name="pictureService" class="com.wzcssw.service.impl.PictureServiceImpl" >
+		<property name="dao">
+			<ref bean="pictureDAO" />
+		</property>
+	</bean>
+	<bean name="albumService" class="com.wzcssw.service.impl.AlbumServiceImpl" >
+		<property name="dao">
+			<ref bean="albumDAO" />
+		</property>
+	</bean>
+	<bean name="categoryService" class="com.wzcssw.service.impl.CategoryServiceImpl" >
+		<property name="dao">
+			<ref bean="categoryDAO" />
+		</property>
+	</bean>
+	<bean name="commentService" class="com.wzcssw.service.impl.CommentServiceImpl" >
+		<property name="dao">
+			<ref bean="commentDAO" />
+		</property>
+	</bean>
+	<bean name="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation">
+			<value>classpath:hibernate.cfg.xml</value>
+		</property>
+	</bean>
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+
+	<tx:advice id="tx" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" read-only="false" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut expression="execution (* com.wzcssw.service.UserService.*(..))" id="usertarget" />
+		<aop:pointcut expression="execution (* com.wzcssw.service.PictureService.*(..))" id="pictrueTarget" />
+		<aop:pointcut expression="execution (* com.wzcssw.service.AlbumService.*(..))" id="albumTarget" />
+		<aop:pointcut expression="execution (* com.wzcssw.service.CategoryService.*(..))" id="categoryTarget" />
+		<aop:pointcut expression="execution (* com.wzcssw.service.CommentService.*(..))" id="commentTarget" />
+		<aop:advisor advice-ref="tx" pointcut-ref="usertarget" />
+		<aop:advisor advice-ref="tx" pointcut-ref="pictrueTarget" />
+		<aop:advisor advice-ref="tx" pointcut-ref="albumTarget" />
+		<aop:advisor advice-ref="tx" pointcut-ref="categoryTarget" />
+		<aop:advisor advice-ref="tx" pointcut-ref="commentTarget" />
+	</aop:config>
+</beans>

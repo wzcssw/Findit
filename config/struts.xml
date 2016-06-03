@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<constant name="struts.devMode" value="true"></constant>
+	
+	<package name="default" namespace="/" extends="json-default">
+		<interceptors> 
+			<interceptor name="loginInterceptor" class="com.wzcssw.web.interceptor.LoginInterceptor"></interceptor>
+			<interceptor name="adminInterceptor" class="com.wzcssw.web.interceptor.AdminInterceptor"></interceptor>
+			<interceptor-stack name="loginStack">
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<interceptor-ref name="loginInterceptor"></interceptor-ref>
+			</interceptor-stack>
+			<interceptor-stack name="adminStack">
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<interceptor-ref name="adminInterceptor"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+        <default-action-ref name="index" />
+        <global-results>
+			<result type="redirectAction" name="login">
+            	<param name="namespace">/user</param>
+            	<param name="actionName">loginui</param>	
+            </result>
+		</global-results>
+        <action name="index">
+            <result type="chain">
+            	<param name="namespace">/picture</param>
+            	<param name="actionName">topPage</param>
+            </result>
+        </action>
+    </package>
+    
+	<package name="user" namespace="/user" extends="default">
+		<action name="*" class="userAction" method="{1}">
+			<result name="success" type="redirectAction">
+				<param name="namespace">/</param>
+				<param name="actionName">index</param>
+			</result>
+			<result name="loginui">/WEB-INF/Pages/user/login.jsp</result>
+			<result name="registui">/WEB-INF/Pages/user/regist.jsp</result>
+			<result name="modifyResumeui">/WEB-INF/Pages/user/modifyResume.jsp</result>
+			<result name="modifyResume" type="json">
+				<param name="root">action</param> 
+     			<param name="includeProperties">accessGranted</param>
+			</result>
+			<result type="json" name="login">
+				<param name="root">action</param> 
+     			<param name="includeProperties">error,accessGranted</param>
+			</result>
+			<result type="json" name="findUserByName">
+				<param name="root">accessGranted</param> 
+			</result>
+			<result name="regist" type="json">
+				<param name="root">action</param> 
+     			<param name="includeProperties">accessGranted</param>
+			</result>
+			<result name="deleteUser" type="json">
+				<param name="root">action</param> 
+     			<param name="includeProperties">accessGranted</param>
+			</result>
+			<result name="findSomeUserByAJAX" type="json">
+				<param name="root">ajaxUsers</param> 
+     			<param name="includeProperties">\[\d+\]\.uid,\[\d+\]\.head\.pname
+     			</param>
+			</result>
+			<result name="successui">/WEB-INF/Pages/user/success.jsp</result>
+		</action>
+		<action class="userAction" method="modifyResumeui" name="modifyResumeui">
+			<interceptor-ref name="loginStack"></interceptor-ref>
+			<result name="modifyResumeui">/WEB-INF/Pages/user/modifyResume.jsp</result>
+		</action>
+		<action class="userAction" method="profileui" name="profileui">
+			<interceptor-ref name="loginStack"></interceptor-ref>
+			<result name="profileui">/WEB-INF/Pages/user/profile.jsp</result>
+		</action>
+	</package>
+	<package name="backstage" namespace="/backstage" extends="default">
+        <action name="*" class="managerAction" method="{1}">
+        	<interceptor-ref name="adminStack"></interceptor-ref>
+            <result name="systemInfo">/WEB-INF/Pages/manager/data.jsp</result>
+            <result name="userlist">/WEB-INF/Pages/manager/user.jsp</result>
+        </action>
+    </package>
+    
+    <package name="picture" namespace="/picture" extends="default">
+        <action name="*" class="pictureAction" method="{1}">
+            <result name="topPage">/WEB-INF/Pages/user/topPage.jsp</result>
+            <result name="viewPicture">/WEB-INF/Pages/user/viewPicture.jsp</result>
+            <result name="album">/WEB-INF/Pages/user/album.jsp</result>
+            <result name="userPicture">/WEB-INF/Pages/user/userPicture.jsp</result>
+            <result name="uploadPictureui">/WEB-INF/Pages/user/uploadPicture.jsp</result>
+            <result type="json" name="loadPictureByUserAJAX">
+            	<param name="root">page</param>
+     			<param name="includeProperties">page,pageCount,data\[\d+\]\.pname,data\[\d+\]\.pid</param>
+            </result>
+            <result type="json" name="zanPicture">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="deletePicture">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="createAlbum">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="deleteAlbum">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="renameAlbum">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="addCategory">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="updatePictureInfo">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="loadCategoryAJAX">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg,categories\[\d+\]\.cid,categories\[\d+\]\.description</param>
+            </result>
+            <result type="json" name="setSeal">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="collectPicture">
+            	<param name="root">action</param> 
+     			<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="loadAlbumByAJAX">
+            	<param name="root">action</param> 
+            	<param name="includeProperties">msg,albums\[\d+\]\.aname,albums\[\d+\]\.aid</param>
+            </result>
+            <result type="json" name="addComment">
+            	<param name="root">action</param> 
+            	<param name="includeProperties">msg</param>
+            </result>
+            <result type="json" name="delComment">
+            	<param name="root">action</param> 
+            	<param name="includeProperties">msg</param>
+            </result>
+        </action>
+        <action name="collectedPictureui" class="pictureAction" method="collectedPictureui">
+        	<interceptor-ref name="loginStack"></interceptor-ref>
+           <result name="collectedPictureui">/WEB-INF/Pages/user/collectedPicture.jsp</result>
+        </action>
+        <action name="uploadPictureui" class="pictureAction" method="uploadPictureui">
+        	<interceptor-ref name="loginStack"></interceptor-ref>
+            <result name="uploadPictureui">/WEB-INF/Pages/user/uploadPicture.jsp</result>
+        </action>
+        <action name="album" class="pictureAction" method="album">
+        	<interceptor-ref name="loginStack"></interceptor-ref>
+            <result name="album">/WEB-INF/Pages/user/album.jsp</result>
+        </action>
+    </package>
+    
+    <package name="file" namespace="/file" extends="default">
+        <action name="*" class="fileAction" method="{1}">
+        	<result name="download" type="stream">
+        		<param name="contentType">application/msword</param>
+        		<param name="inputName">inputStream</param>
+        		<param name="contentDisposition">filename=${downFileName}</param>
+			</result>
+			<result name="show" type="stream">
+        		<param name="inputName">inputStream</param>
+        		<param name="contentDisposition">filename=${downFileName}</param>
+			</result>
+			<result name="buildCode" type="stream">
+        		<param name="inputName">inputStream</param>
+        		<param name="contentType">image</param>
+			</result>
+			<result name="showMini" type="stream">
+        		<param name="inputName">inputStream</param>
+        		<param name="contentDisposition">filename=${downFileName}</param>
+			</result>
+			<result type="json" name="fileUploadAjax">
+     			<param name="includeProperties">msg,pname,pid</param>
+     			<param name="contentType">text/html</param>
+			</result>
+        </action>
+    </package>
+</struts>
